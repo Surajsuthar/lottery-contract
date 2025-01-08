@@ -9,7 +9,7 @@ abstract contract CodeConstent {
      */
     uint96 public constant MOCK_BASE_FEE = 0.25 ether;
     uint96 public constant MOCK_GAS_PRICE_LINK = 1e9;
-    uint256 public MOCK_WEI_PER_UNIT_LINK = 4e15;
+    int256 public MOCK_WEI_PER_UNIT_LINK = 4e15;
     uint256 public constant ETH_SEPOLIA_CHAIN_ID = 1115511;
     uint256 public constant LOCAL_CHAIN_ID = 31337;
 }
@@ -21,9 +21,9 @@ contract HelperConfig is CodeConstent, Script {
         uint256 entraceFee;
         uint256 interval;
         address vrfCoordinator;
-        bytes gasLane;
+        bytes32 gasLane;
         uint32 callBackGasLimit;
-        uint256 subscriptionId;
+        uint32 subscriptionId;
     }
 
     NetworkConfig public localNetworkConfig;
@@ -64,7 +64,11 @@ contract HelperConfig is CodeConstent, Script {
         }
         //deploy mock and stuffl
         vm.startBroadcast();
-        VRFCoordinatorV2_5Mock vrfCoordinatorMock = new VRFCoordinatorV2_5Mock( MOCK_BASE_FEE, MOCK_GAS_PRICE_LINK, MOCK_WEI_PER_UNIT_LINK );
+        VRFCoordinatorV2_5Mock vrfCoordinatorMock = new VRFCoordinatorV2_5Mock( 
+            MOCK_BASE_FEE, 
+            MOCK_GAS_PRICE_LINK, 
+            MOCK_WEI_PER_UNIT_LINK 
+        );
         vm.stopBroadcast();
         localNetworkConfig = NetworkConfig({
             entraceFee: 0.01 ether,
