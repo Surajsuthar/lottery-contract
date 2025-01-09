@@ -29,10 +29,7 @@ import {VRFV2PlusClient} from "@chainlink/contracts/src/v0.8/vrf/dev/libraries/V
  * errors
  */
 
-error Raffle__GetEnoughEthToEnterInRaffle();
-error Raffle__TranferFaild();
-error Raffle__raffelNotOpen();
-error Raffle__upKeepNotNeeded(uint256 balance,uint256 players,uint256 rafflestate);
+
 
 /**
  * @title A simple raffle contract
@@ -42,6 +39,11 @@ error Raffle__upKeepNotNeeded(uint256 balance,uint256 players,uint256 rafflestat
  */
 
 contract Raffle is VRFConsumerBaseV2Plus {
+
+    error Raffle__GetEnoughEthToEnterInRaffle();
+    error Raffle__TranferFaild();
+    error Raffle__raffelNotOpen();
+    error Raffle__upKeepNotNeeded(uint256 balance,uint256 players,uint256 rafflestate);
 
     enum RaffleState {
         OPEN, //0
@@ -178,5 +180,9 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     function getRaffleState() public view returns(RaffleState) {
         return s_raffleState;
+    }
+
+    function getPlayer(uint256 indexOfPlayer) external view returns(address) {
+        return s_players[indexOfPlayer];
     }
 }
