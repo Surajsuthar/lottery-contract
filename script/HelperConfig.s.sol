@@ -24,6 +24,7 @@ contract HelperConfig is CodeConstent, Script {
         bytes32 gasLane;
         uint32 callBackGasLimit;
         uint32 subscriptionId;
+        address linl;
     }
 
     NetworkConfig public localNetworkConfig;
@@ -76,7 +77,8 @@ contract HelperConfig is CodeConstent, Script {
             vrfCoordinator: address(vrfCoordinatorMock),
             gasLane: 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c,
             callBackGasLimit: 500000,
-            subscriptionId: 0
+            subscriptionId: 0,
+            link: 0x779877A7B0D9E8603169DdbD7836e478b4624789
         });
 
         return localNetworkConfig;
