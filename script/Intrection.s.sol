@@ -2,8 +2,10 @@
 pragma solidity 0.8.28;
 
 import { Script, console } from "forge-std/Script.sol";
-import { HelperConfig } from "./HelperConfig.s.sol";
+import { HelperConfig,CodeConstent } from "./HelperConfig.s.sol";
 import { VRFCoordinatorV2_5Mock } from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
+import { LinkToken } from "test/Mocks/LinkToken.s.sol";
+import { DevOpsTools } from "lib/foundry-devops/src/DevOpsTools.sol";
 
 contract CreateSubscription is Script {
     function createSubscriptionConfig() public returns(uint256, address) {
@@ -26,14 +28,53 @@ contract CreateSubscription is Script {
     }
 }
 
-contract FundSubscription is Script {
+contract FundSubscription is Script, CodeConstent {
     
-    uint256 public constant FUND_AMOUNT = 3 ether
+    uint256 public constant FUND_AMOUNT = 3 ether;
 
     function fundSubscriptionUsingConfig() public {
         HelperConfig helperConfig = new HelperConfig();
         address vrfCoordinator = helperConfig.getConfig().vrfCoordinator;
         uint256 subsripationId = helperConfig.getConfig().subscriptionId;
+        address linktoken = helperConfig.getConfig().link;
+        fundSubscription(vrfCoordinator,subsripationId,linktoken);
     }
-    function run() public {}
+
+    function fundSubscription(address vrfCoordinator, uint256 subsripationId, address linktoken) public {
+        console.log("Funding Subscription",subsripationId);
+        console.log("Funding vrfCoordinator",vrfCoordinator);
+        console.log("Funding linktoken",linktoken);
+
+        if(block.chainid == LOCAL_CHAIN_ID) {
+            vm.startBroadcast();
+            VRFCoordinatorV2_5Mock(vrfCoordinator).fundSubscription(subsripationId, FUND_AMOUNT);
+            vm.stopBroadcast();
+        } else {
+            vm.startBroadcast();
+            LinkToken(linktoken).transferAndCall(vrfCoordinator, FUND_AMOUNT, abi.encode(subsripationId));
+            vm.stopBroadcast();
+        }
+    }
+
+    function run() public {
+        fundSubscriptionUsingConfig();
+    }
+}
+
+contract AddConsumers is Script {
+    function run() external {
+        address mostRecentDeployed = DevOpsTools.get_most_recent_deployment("MyContract", block.chainid);
+        addConsumerUsingConfig(mostRecentDeployed);
+    }
+
+    function addConsumerUsingConfig(address mostRecentDeployed) public {
+        HelperConfig helperConfig = new HelperConfig();
+        uint256 subsripationId = helperConfig.getConfig().subscriptionId;
+        address vrfCoordinator = helperConfig.getConfig().vrfCoordinator;
+        addConsumer(mostRecentDeployed, vrfCoordinator, subsripationId);
+    }
+
+    function addConsumer(address mostRecentDeployed, address vrfCoordinator, uint256 subsripationId) public {
+
+    } 
 }
