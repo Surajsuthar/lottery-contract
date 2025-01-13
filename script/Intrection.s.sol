@@ -63,7 +63,7 @@ contract FundSubscription is Script, CodeConstent {
 
 contract AddConsumers is Script {
     function run() external {
-        address mostRecentDeployed = DevOpsTools.get_most_recent_deployment("MyContract", block.chainid);
+        address mostRecentDeployed = DevOpsTools.get_most_recent_deployment("Raffle", block.chainid);
         addConsumerUsingConfig(mostRecentDeployed);
     }
 
@@ -75,6 +75,11 @@ contract AddConsumers is Script {
     }
 
     function addConsumer(address mostRecentDeployed, address vrfCoordinator, uint256 subsripationId) public {
-
+        console.log("Adding consumer contract",mostRecentDeployed);
+        console.log("To vrfvontract",vrfCoordinator);
+        console.log("on chainId",block.chainid);
+        vm.startBroadcast();
+        VRFCoordinatorV2_5Mock(vrfCoordinator).addConsumer(subsripationId, mostRecentDeployed);
+        vm.stopBroadcast();
     } 
 }
