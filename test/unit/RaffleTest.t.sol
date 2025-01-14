@@ -5,6 +5,7 @@ import { Test } from "forge-std/Test.sol";
 import { DeployRaffle } from "script/DeployRaffle.s.sol";
 import { Raffle } from "src/Raffle.sol";
 import { HelperConfig } from "script/HelperConfig.s.sol";
+import { Vm } from "forge-std/Vm.sol";
 
 contract RaffleTest is Test {
     HelperConfig private helperConfig;
@@ -93,5 +94,53 @@ contract RaffleTest is Test {
         (bool upKeepNeeded, ) = raffle.checkUpkeep("");
         //assert
         assert(!upKeepNeeded);
+    }
+
+    function testPerfromUpKeepanOnlyCanRunIfCheckUpKeepTrue() public {
+        // arrange
+        vm.prank(PLAYER);
+        vm.warp(block.timestamp);
+        vm.roll(block.number + 1);
+       
+        // act
+        raffle.performUpkeep("");
+    }
+
+    function testPerformUpkeepReverIfCheckUpkeepIsFalse() public {
+        // arrange
+        uint256 currentbalnece = 0;
+        uint256 numPlayer = 0;
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entraceFee}();
+        Raffle.RaffleState rStart = raffle.getRaffleState();
+        currentbalnece+=entraceFee;
+        numPlayer=1;
+        // act-ssert
+        vm.expectRevert(
+            abi.encodeWithSelector(Raffle.Raffle__upKeepNotNeeded.selector,currentbalnece, numPlayer, rStart)
+        );
+    }
+
+    //what if we need data from emmitted event.?
+    function testPerfromUpkeepUpdateStateAndEmitEvents() public raffleEnterd {
+        // arrang
+        //act
+        vm.recordLogs();
+        raffle.performUpkeep("");
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        bytes32 requsetId = entries[1].topics[1];
+
+        //assert
+        Raffle.RaffleState raffleState = raffle.getRaffleState();
+        assert(uint256(requsetId) > 0);
+        assert(uint256(raffleState) == 1);
+    }
+
+    modifier raffleEnterd() {
+        // arrange
+        vm.prank(PLAYER);
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+        _;
     }
 }
