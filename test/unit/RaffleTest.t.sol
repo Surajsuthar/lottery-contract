@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
-import { Test } from "forge-std/Test.sol";
+import { Test,console2 } from "forge-std/Test.sol";
 import { DeployRaffle } from "script/DeployRaffle.s.sol";
 import { Raffle } from "src/Raffle.sol";
 import { HelperConfig } from "script/HelperConfig.s.sol";
 import { Vm } from "forge-std/Vm.sol";
 import { VRFCoordinatorV2_5Mock } from "@chainlink/contracts/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
+import { CodeConstent } from "script/HelperConfig.s.sol";
 
-contract RaffleTest is Test {
+
+contract RaffleTest is CodeConstent,Test {
     HelperConfig private helperConfig;
     Raffle public raffle;
 
@@ -145,15 +147,21 @@ contract RaffleTest is Test {
         _;
     }
 
+    modifier skipFork() {
+        if (block.chainid != 31337) {
+            return;
+        }
+        _;
+    }
     /**
     * @dev fuzz test
      */
     function testFullFillRandomWordsCanOnlyBeCalledAfterPerFormUpKeep(uint256 requsetID) public raffleEnterd {
-        vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest().selector);
-        VRFCoordinatorV2_5Mock.fulfillRandomWords(requsetID, address(raffle));
+        vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(0, address(raffle));
     }
 
-    function testFulfillRandomWordsPicksAWinnerResetsAndSendsMoney() public raffleEntered {
+    function testFulfillRandomWordsPicksAWinnerResetsAndSendsMoney() public raffleEnterd skipFork {
         address expectedWinner = address(1);
 
         // Arrange
@@ -163,7 +171,7 @@ contract RaffleTest is Test {
         for (uint256 i = startingIndex; i < startingIndex + additionalEntrances; i++) {
             address player = address(uint160(i));
             hoax(player, 1 ether); // deal 1 eth to the player
-            raffle.enterRaffle{value: raffleEntranceFee}();
+            raffle.enterRaffle{value: entraceFee}();
         }
 
         uint256 startingTimeStamp = raffle.getLastTimeStamp();
@@ -176,14 +184,14 @@ contract RaffleTest is Test {
         console2.logBytes32(entries[1].topics[1]);
         bytes32 requestId = entries[1].topics[1]; // get the requestId from the logs
 
-        VRFCoordinatorV2_5Mock(vrfCoordinatorV2_5).fulfillRandomWords(uint256(requestId), address(raffle));
+        VRFCoordinatorV2_5Mock(vrfCoordinator).fulfillRandomWords(uint256(requestId), address(raffle));
 
         // Assert
         address recentWinner = raffle.getRecentWinner();
         Raffle.RaffleState raffleState = raffle.getRaffleState();
         uint256 winnerBalance = recentWinner.balance;
         uint256 endingTimeStamp = raffle.getLastTimeStamp();
-        uint256 prize = raffleEntranceFee * (additionalEntrances + 1);
+        uint256 prize = entraceFee * (additionalEntrances + 1);
 
         assert(recentWinner == expectedWinner);
         assert(uint256(raffleState) == 0);

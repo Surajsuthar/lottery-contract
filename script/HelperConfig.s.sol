@@ -13,6 +13,7 @@ abstract contract CodeConstent {
     int256 public MOCK_WEI_PER_UNIT_LINK = 4e15;
     uint256 public constant ETH_SEPOLIA_CHAIN_ID = 1115511;
     uint256 public constant LOCAL_CHAIN_ID = 31337;
+    address public FOUNDRY_DEFAULT_SENDER = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38; 
 }
 
 error HelperConfig__InvalidChainID();
@@ -26,6 +27,7 @@ contract HelperConfig is CodeConstent, Script {
         uint32 callBackGasLimit;
         uint256 subscriptionId;
         address link;
+        address account;
     }
 
     NetworkConfig public localNetworkConfig;
@@ -57,7 +59,8 @@ contract HelperConfig is CodeConstent, Script {
             gasLane: 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c,
             callBackGasLimit: 500000,
             subscriptionId: 0,
-            link: 0x779877A7B0D9E8603169DdbD7836e478b4624789
+            link: 0x779877A7B0D9E8603169DdbD7836e478b4624789,
+            account: 0x643315C9Be056cDEA171F4e7b2222a4ddaB9F88D
         });
     }
 
@@ -81,7 +84,8 @@ contract HelperConfig is CodeConstent, Script {
             gasLane: 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c,
             callBackGasLimit: 500000,
             subscriptionId: 0,
-            link: address(linktoken)
+            link: address(linktoken),
+            account: FOUNDRY_DEFAULT_SENDER
         });
 
         return localNetworkConfig;
